@@ -1,8 +1,12 @@
 package io.monteirodev.pokemon
 
 import android.Manifest.permission.ACCESS_FINE_LOCATION
-import android.content.pm.PackageManager
+import android.content.Context
 import android.content.pm.PackageManager.PERMISSION_GRANTED
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
+import android.location.LocationManager.GPS_PROVIDER
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
@@ -22,6 +26,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
     val LOCATION_REQUEST = 1
+    var location:Location?= null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,15 +51,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions()
-                .position(sydney)
-                .title("Me")
-                .snippet("Here's me :)")
-                .icon(fromResource(mario)))
 
-        mMap.moveCamera(newLatLngZoom(sydney,10f))
     }
 
     fun checkPermission() {
@@ -72,6 +69,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun getUserLocation() {
         Toast.makeText(this, "User locations access on", LENGTH_LONG).show()
+
+        var myLocation = MyLocationListener()
+
+        var locationManager =
+                getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+        // checkPermission()
+        locationManager.requestLocationUpdates(GPS_PROVIDER, 3, 3f, myLocation)
+
+        MyThread().start()
+
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>,
@@ -87,5 +95,51 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
+
+    inner class MyLocationListener() :LocationListener {
+
+        init {
+            location = Location("start")
+            location!!.latitude = 0.0
+            location!!.longitude = 0.0
+        }
+
+        override fun onLocationChanged(loc: Location?) {
+            location = loc
+        }
+
+        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) { }
+
+        override fun onProviderEnabled(provider: String?) { }
+
+        override fun onProviderDisabled(provider: String?) { }
+
+    }
+
+    inner class MyThread : Thread() {
+        override fun run() {
+            while (true) {
+// Add a marker in Sydney and move the camera
+                try {
+                    runOnUiThread {
+                        mMap.clear()
+                        val place = LatLng(location!!.latitude, location!!.longitude)
+                        mMap.addMarker(MarkerOptions()
+                                .position(place)
+                                .title("Me")
+                                .snippet("Here's me :)")
+                                .icon(fromResource(mario)))
+
+                        mMap.moveCamera(newLatLngZoom(place,10f))
+                    }
+
+                    Thread.sleep(1000)
+
+                } catch (e: Exception) {
+
+                }
+            }
+        }
     }
 }
