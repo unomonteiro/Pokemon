@@ -40,3 +40,7 @@ pokemonMapsApiKey = AIza...
 Add in manifest but also code
 [Dangerous permissions](https://developer.android.com/guide/topics/permissions/overview#permission-groups)
    
+### more reading
+https://developer.android.com/training/permissions/requesting
+
+https://inthecheesefactory.com/blog/things-you-need-to-know-about-android-m-permission-developer-edition/en
